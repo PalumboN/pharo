@@ -93,6 +93,13 @@ ByteString class >> translate: aString from: start  to: stop  table: table [
 		aString at: i put: (table at: (aString basicAt: i) + 1) ]
 ]
 
+{ #category : #comparing }
+ByteString >> = anotherObject [
+	<primitive: 156>
+
+	^ super = anotherObject
+]
+
 { #category : #converting }
 ByteString >> asByteArray [
 

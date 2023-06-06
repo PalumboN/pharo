@@ -510,6 +510,7 @@ String >> = aString [
 
 	" 'def' = 'abc' >>> false"
 
+	"Because it is used with Character"
 	(aString isString and: [ self size = aString size ]) ifFalse: [ ^ false ].
 	^ (self compare: self with: aString) = 0
 ]
