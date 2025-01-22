@@ -105,7 +105,7 @@ OCScannerTest >> testMultipleNextLiteralStartAtFirstLetter [
 	| scanner token |
 	scanner := self buildScannerForText: '########literal'.
 	token := scanner next.
-	self assert: token isLiteralToken.
+	self deny: token isLiteralToken.
 	self assert: token start equals: 1
 ]
 
@@ -867,14 +867,6 @@ OCScannerTest >> testNextLiteralCanContainDigits [
 ]
 
 { #category : 'tests - Literal' }
-OCScannerTest >> testNextLiteralCanHaveMultipleHashtag [
-	| scanner token |
-	scanner := self buildScannerForText: '########literal'.
-	token := scanner next.
-	self assert: token isLiteralToken
-]
-
-{ #category : 'tests - Literal' }
 OCScannerTest >> testNextLiteralCanNotContainBinaryAndAlphabetic [
 	| scanner token |
 	scanner := self buildScannerForText: '#+alpha'.
@@ -888,6 +880,14 @@ OCScannerTest >> testNextLiteralCanNotContainBinaryAndAlphabetic [
 	scanner := self buildScannerForText: '#alpha-'.
 	token := scanner next.
 	self assert: token value equals: #alpha
+]
+
+{ #category : 'tests - Literal' }
+OCScannerTest >> testNextLiteralCannotHaveMultipleHashtag [
+	| scanner token |
+	scanner := self buildScannerForText: '########literal'.
+	token := scanner next.
+	self deny: token isLiteralToken
 ]
 
 { #category : 'tests - Literal' }
@@ -976,16 +976,8 @@ OCScannerTest >> testNextLiteralStopAtLastLetter [
 	| scanner token |
 	scanner := self buildScannerForText: '########literal'.
 	token := scanner next.
-	self assert: token isLiteralToken.
-	self assert: token stop equals: 15
-]
-
-{ #category : 'tests - Literal' }
-OCScannerTest >> testNextLiteralWithMultipleHashtagTrimThem [
-	| scanner token |
-	scanner := self buildScannerForText: '########literal'.
-	token := scanner next.
-	self assert: token value equals: 'literal'
+	self deny: token isLiteralToken.
+	self assert: token stop equals: 2
 ]
 
 { #category : 'tests - Keyword' }

@@ -433,8 +433,12 @@ OCScanner >> scanLiteral [
 	(currentCharacter = $( or: [ currentCharacter = $[ ])
 		ifTrue: [ ^ self scanLiteralArrayToken ].
 	"Accept multiple #."
+	(currentCharacter = $# and: [ alreadySeenHash ])
+		ifTrue: [ ^ self scanError: 'Multiple # sequence is forbidden' ].
 	currentCharacter = $#
-		ifTrue: [ ^ self scanLiteral ].
+		ifTrue: [ 
+			alreadySeenHash := true.
+			^ self scanLiteral ].
 	^ self scanError: 'Literal expected'
 ]
 
