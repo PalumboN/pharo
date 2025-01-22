@@ -770,6 +770,17 @@ OCScannerTest >> testNextLiteralArrayWithBracketStopAtBracket [
 	self assert: token stop equals: 2
 ]
 
+{ #category : 'tests - Hashes' }
+OCScannerTest >> testNextLiteralArrayWithParenthesisDoNotAllowMultipleTag [
+	"Note: the scanner only spots the beginning of the array."
+	
+	| scanner token |
+	scanner := self buildScannerForText: '#########('.
+	token := scanner next.
+	"This is an error but I do not want to hard code the class of error"
+	self assert: token value equals: '##'
+]
+
 { #category : 'tests - SpecialCharacters' }
 OCScannerTest >> testNextLiteralArrayWithParenthesisHasRigthValue [
 	"Note: RBScanner only spots the beginning of the array."
@@ -836,6 +847,17 @@ OCScannerTest >> testNextLiteralBeginningWithUnknownThrowsError [
 	self assert: token isError.
 	self assert: token value equals: '#'.
 	self assert: token cause equals: 'Literal expected'
+]
+
+{ #category : 'tests - Hashes' }
+OCScannerTest >> testNextLiteralByteArrayWithBracketIsNotAllowedToHaveMultipleTag [
+	"Note: the scanner only spots the beginning of the array."
+	
+	| scanner token |
+	scanner := self buildScannerForText: '####['.
+	token := scanner next.
+	"this is an error but I do not want to hardcode the class name!"
+	self assert: token value equals: '##'
 ]
 
 { #category : 'tests - Literal' }
