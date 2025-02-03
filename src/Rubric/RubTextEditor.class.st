@@ -152,18 +152,29 @@ RubTextEditor >> addString: aString [
 
 { #category : 'undo - redo private' }
 RubTextEditor >> addTypeInUndoRecord [
-	| begin stop undoText redoText |
-	begin := self startOfTyping min: self stopIndex.
-	stop := self stopIndex max: self startOfTyping.
+	| begin stop undoText redoText selectionBeforeChange |
+	begin := self startOfTyping.
+	stop := self stopIndex.
+
+	selectionBeforeChange := self selectionInterval.
 	self editingState previousInterval: (begin to: stop - 1).
 	undoText := self nullText.
 	redoText := stop > begin
 			ifTrue: [self text copyFrom: begin to: stop - 1]
 			ifFalse: [self nullText].
-	((undoText isEmpty and: [redoText isEmpty]) and: [self editingState previousInterval size < 1])
-			ifFalse: [self
-				redoArray: { textArea. #redoTypeIn:interval:.  {redoText. begin to: begin + self selection size - 1} }
-				undoArray: {textArea. #undoTypeIn:interval:.  {undoText. begin to: stop - 1} }]
+
+	((undoText isEmpty and: [redoText isEmpty])
+		and: [self editingState previousInterval size < 1]) ifTrue: [ ^ self ] .
+
+	self
+		redoArray: { textArea. #redoTypeIn:interval:selection:. { 
+			redoText. 
+			begin to: begin - 1.
+			selectionBeforeChange } }
+		undoArray: { textArea. #undoTypeIn:interval:selection:. { 
+			undoText.
+			begin to: stop - 1.
+			(begin to: begin -1) } }
 ]
 
 { #category : 'new selection' }
@@ -428,6 +439,27 @@ RubTextEditor >> changeLfToCr: aKeyboardEvent [
 	fixed := fixed copyReplaceAll: String lf with: String cr.
 	self replaceSelectionWith: (Text fromString: fixed).
 	^ true
+]
+
+{ #category : 'accessing' }
+RubTextEditor >> characterGroupAt: index in: aString [
+
+	| character |
+	character := aString at: index.
+
+	character isSeparator ifTrue: [ ^ #separator ].
+	character isAlphaNumeric ifTrue: [
+		character isUppercase
+			ifTrue: [ ^ #upper ]
+			ifFalse: [ ^ #lower ] ].
+
+	"exclude '|<>=' from the syntax and consider them binary"
+	(('^"''[](){}$#;:.' includes: character) or: [
+		 character = $= and: [ (aString at: (index - 1 max: 1)) = $: ] ]) 
+			ifTrue: [ ^ #syntax ].
+
+
+	^ #binary
 ]
 
 { #category : 'menu messages' }
@@ -787,6 +819,7 @@ RubTextEditor >> defaultCommandKeymapping [
 	(KeyboardKey enter -> #crWithIndent:).
 	(KeyboardKey escape -> #escape:).
 	(KeyboardKey left -> #cursorLeft:).
+	(KeyboardKey space -> #space:).
 	(KeyboardKey right -> #cursorRight:).
 	(KeyboardKey up -> #cursorUp:).
 	(KeyboardKey down -> #cursorDown:).
@@ -855,21 +888,6 @@ RubTextEditor >> doubleClick: evt [
 		ifTrue: [ self selectWord ].
 	self setEmphasisHereFromText.
 	self storeSelectionInText
-]
-
-{ #category : 'editing keys' }
-RubTextEditor >> duplicate: aKeyboardEvent [
-	"Paste the current selection over the prior selection, if it is non-overlapping and
-	 legal.  Undoer & Redoer: undoAndReselect."
-
-	self closeTypeIn.
-	(self hasSelection and: [self isDisjointFrom: self editingState previousInterval])
-		ifTrue: "Something to duplicate"
-			[self replace: self editingState previousInterval with: self selection and:
-				[self selectAt: self pointIndex]]
-		ifFalse:
-			[textArea flash].
-	^true
 ]
 
 { #category : 'accessing - selection' }
@@ -1670,6 +1688,34 @@ RubTextEditor >> nextCharacterIfAbsent: aBlock [
 ]
 
 { #category : 'private' }
+RubTextEditor >> nextWord2: position stopOnUpperCase: stopOnUpperCase [
+	"Positions go from 1 to size + 1
+	Position N + 1 is after the Nth character"
+
+	| string index size initialGroup finalGroup |
+	index := 1 max: position.
+	string := self string.
+	size := string size + 1.
+	position >= size ifTrue: [ ^ size ].
+
+
+	initialGroup := self wordGroupAt: index in: string.
+	index := index + 1.
+	initialGroup = #upper ifTrue: [
+		(self wordGroupAt: index in: string) = #lower ifTrue: [ initialGroup := #lower ] ].
+
+	[
+	index < size and: [ (finalGroup := self wordGroupAt: index in: string) = initialGroup ] ]
+		whileTrue: [ index := index + 1 ].
+
+	(initialGroup = #upper and: [ finalGroup = #lower ]) ifTrue: [ 
+		"Moving to the right from upper to lower, we want to stop in the last upper"
+		index := index - 1 ].
+
+	^ index
+]
+
+{ #category : 'private' }
 RubTextEditor >> nextWord: position [
 
 	^ self nextWord: position stopOnUpperCase: false
@@ -1680,22 +1726,38 @@ RubTextEditor >> nextWord: position stopOnUpperCase: stopOnUpperCase [
 	"Positions go from 1 to size + 1
 	Position N + 1 is after the Nth character"
 
-	| string index initialIsAlphaNumeric size |
-	index := 1 max: position.
-
+	| string index initialIsAlphaNumeric size initialPosition |
+	index := initialPosition := 1 max: position.
 	string := self string.
 	size := string size + 1.
 	position >= size ifTrue: [ ^ size ].
 
-	initialIsAlphaNumeric := self isWordCharacterAt: index in: string.
-
 	[
-	index < size and: [
+	index < string size and: [
+		{
+			Character space.
+			Character tab } includes: (string at: index) ] ] whileTrue: [
+		index := index + 1 ].
+
+	initialIsAlphaNumeric := self isWordCharacterAt: index in: string.
+	
+	
+	index = initialPosition
+		ifTrue: [ index := index + 1 ].
+	
+	[ | nextCharacterInDirection |
+	"If we reach the end"
+	index >= size ifTrue: [ ^ index ].
+	
+	nextCharacterInDirection := string at: index.
+	nextCharacterInDirection = Character cr
+		ifTrue: [ ^ index ].
+	
 		(self
 			 isWordCharacterAt: index
 			 in: string
-			 except: [ :char | stopOnUpperCase and: [ char isUppercase ] ])
-		= initialIsAlphaNumeric ] ] whileTrue: [ index := index + 1 ].
+			 except: [ :char | stopOnUpperCase and: [ char isUppercase ] ]) = initialIsAlphaNumeric ]
+		whileTrue: [ index := index + 1 ].
 
 	^ index
 ]
@@ -1841,6 +1903,33 @@ RubTextEditor >> previousCharacterIfAbsent: aBlock [
 ]
 
 { #category : 'private' }
+RubTextEditor >> previousWord2: position stopOnUpperCase: stopOnUpperCase [
+	"Positions go from 1 to size + 1
+	Position N + 1 is after the Nth character"
+
+	| string index size initialGroup finalGroup |
+	position <= 2 ifTrue: [ ^ 1 ].
+	string := self string.
+	size := string size.
+
+	index := position - 1.
+
+	initialGroup := self wordGroupAt: index in: string.
+	initialGroup = #upper ifTrue: [
+		(self wordGroupAt: index in: string) = #lower ifTrue: [ initialGroup := #lower ] ].
+
+	[
+	index <= 1 and: [ (finalGroup := self wordGroupAt: index in: string) = initialGroup ] ]
+		whileTrue: [ index := index - 1 ].
+
+	(initialGroup = #upper and: [ finalGroup = #lower ]) ifTrue: [ 
+		"Moving to the right from upper to lower, we want to stop in the last upper"
+		index := index - 1 ].
+
+	^ index
+]
+
+{ #category : 'private' }
 RubTextEditor >> previousWord: position [
 
 	^ self previousWord: position stopOnUpperCase: false
@@ -1849,34 +1938,41 @@ RubTextEditor >> previousWord: position [
 { #category : 'private' }
 RubTextEditor >> previousWord: position stopOnUpperCase: stopOnUpperCase [ 
 
-	| string index size beforeCaretIsAlpha afterCaretIsAlpha |
-	"The main strategy behind this is to move the caret backwards until there is a alpha/nonalpha or nonalpha/alpha pair.
-	To avoid staying in the same place, we need always move the character at least once before checking the condition"
+	| string index size initialPosition beforeCaretIsAlpha afterCaretIsAlpha nextCharacterInDirection |
+	"Positions go from 1 to size + 1
+	Position N + 1 is after the Nth character"
+	string := self string.
+	size := string size + 1.
+
+	initialPosition := size min: position.
+	index := initialPosition.
 
 	position <= 2 ifTrue: [ ^ 1 ].
-	string := self string.
-	size := string size.
 
-	"If we ask for the word starting after the string, start at the end of the string.
-	Remember that there are N+1 caret positions for a N-sized string."
-	index := (size + 1) min: position.
-
-	"Go backwards once and check if character before the caret is alphanumeric.
-	If not alphanumeric, we go backwards once more.
-	This handles the case when the caret is after the first character of a word, in which case we should just go once backwards.
-	All other cases should go backwards more than once."
+	"Go always at least once backwards to guarantee progress"
 	index := index - 1.
-	beforeCaretIsAlpha := index = 1 or: [
-		                      self isWordCharacterAt: index in: string ].
-	beforeCaretIsAlpha ifFalse: [
-		index := index - 1 ].
+	afterCaretIsAlpha := index = 1 or: [
+		self isWordCharacterAt: index in: string ].
 
-	"Finally, iterate backwards until the alphanumericness before and after the caret changes"
-	[
-	afterCaretIsAlpha := beforeCaretIsAlpha := index = 1 or: [
+	index <= 1 ifTrue: [ ^ index ].	
+	nextCharacterInDirection := string at: index - 1.
+	nextCharacterInDirection = Character cr
+		ifTrue: [ ^ index ].
+	
+	afterCaretIsAlpha ifFalse: [ index := index - 1 ].
+
+	[ "If we reach the end"
+	index <= 1 ifTrue: [ ^ index ].
+
+	nextCharacterInDirection := string at: index - 1.
+	nextCharacterInDirection = Character cr
+		ifTrue: [ ^ index ].
+
+	afterCaretIsAlpha := index = 1 or: [
 		                      self isWordCharacterAt: index in: string except: [ :char | stopOnUpperCase and: [ char isUppercase ] ] ].
 	beforeCaretIsAlpha := index = 1 or: [
 		                      self isWordCharacterAt: index - 1 in: string ].
+
 	beforeCaretIsAlpha = afterCaretIsAlpha and: [ index > 1 ] ]
 		whileTrue: [ index := index - 1 ].
 	^ index
@@ -1912,10 +2008,13 @@ RubTextEditor >> redoArray: doArray undoArray: undoArray [
 ]
 
 { #category : 'undoers - redoers' }
-RubTextEditor >> redoTypeIn: aText interval: anInterval [
+RubTextEditor >> redoTypeIn: aText interval: anInterval selection: selection [
+
 	self selectInterval: anInterval.
-	self replace: self selectionInterval with: aText and:
-		[self selectInterval: (anInterval first to: anInterval first + aText size - 1)]
+	self
+		replace: self selectionInterval
+		with: aText
+		and: [ self selectInterval: selection ]
 ]
 
 { #category : 'accessing' }
@@ -1923,17 +2022,45 @@ RubTextEditor >> replace: xoldInterval with: newText and: selectingBlock [
 	"Replace the text in oldInterval with newText and
 	execute selectingBlock to establish the new selection.
 	Create an UndoRecord to allow perfect undoing."
-	| prevSel currInterval |
+
+	self replace: xoldInterval with: newText and: selectingBlock selection: self selectionInterval
+]
+
+{ #category : 'accessing' }
+RubTextEditor >> replace: xoldInterval with: newText and: selectingBlock selection: fromSelection [
+	"Replace the text in oldInterval with newText and
+	execute selectingBlock to establish the new selection.
+	Create an UndoRecord to allow perfect undoing."
+
+	| prevSel currInterval cursorAfterInsertion |
 	self selectInterval: xoldInterval.
 	prevSel := self selection.
 	currInterval := self selectionInterval.
 	self editingState previousInterval: currInterval.
+
 	self zapSelectionWith: newText.
+	cursorAfterInsertion := currInterval first + newText size - 1.
+
 	selectingBlock value.
-	((prevSel isEmpty and: [newText isEmpty]) and: [currInterval size < 1])
-		ifFalse: [self
-			redoArray: {textArea. #redoTypeIn:interval:. {newText. currInterval}}
-			undoArray: {textArea. #undoTypeIn:interval:. {prevSel. currInterval first to: currInterval first + newText size - 1}}]
+
+	((prevSel isEmpty and: [ newText isEmpty ]) and: [
+		 currInterval size < 1 ]) ifTrue: [ ^ self ].
+
+	self
+		redoArray: {
+				textArea.
+				#redoTypeIn:interval:selection:.
+				{
+					newText.
+					currInterval.
+					(cursorAfterInsertion + 1 to: cursorAfterInsertion) } }
+		undoArray: {
+				textArea.
+				#undoTypeIn:interval:selection:.
+				{
+					prevSel.
+					(currInterval first to: currInterval first + newText size - 1).
+					fromSelection } }
 ]
 
 { #category : 'find-select' }
@@ -1966,7 +2093,15 @@ RubTextEditor >> replaceAll: aRegex with: aText startingAt: startIdx [
 
 { #category : 'accessing' }
 RubTextEditor >> replaceSelectionWith: aText [
-	self replace: self selectionInterval with: aText and: []
+
+	self
+		replaceSelectionWith: aText
+		fromSelection: self selectionInterval
+]
+
+{ #category : 'accessing' }
+RubTextEditor >> replaceSelectionWith: aText fromSelection: fromSelection [
+	self replace: self selectionInterval with: aText and: [] selection: fromSelection
 ]
 
 { #category : 'accessing' }
@@ -2402,6 +2537,14 @@ RubTextEditor >> shouldEscapeCharacter: aCharacter [
 	^ #($" $') includes: aCharacter
 ]
 
+{ #category : 'typing/selecting keys' }
+RubTextEditor >> space: aKeyboardEvent [
+	"Close the undo/redo transaction. This undo/redo at a per-word granularity"
+
+	self closeTypeIn.
+	^false
+]
+
 { #category : 'keymapping' }
 RubTextEditor >> specialShiftCmdKeys [
 
@@ -2512,6 +2655,7 @@ RubTextEditor >> swapChars: aKeyboardEvent [
 RubTextEditor >> tab: aKeyboardEvent [
 	"Append a line feed character to the stream of characters."
 
+	self closeTypeIn.
 	self addString: String tab.
 	self unselect.
 	^false
@@ -2626,10 +2770,13 @@ RubTextEditor >> undoRedoTransaction: aBlock [
 ]
 
 { #category : 'undoers - redoers' }
-RubTextEditor >> undoTypeIn: aText interval: anInterval [
+RubTextEditor >> undoTypeIn: aText interval: anInterval selection: aSelection [
+
 	self selectInterval: anInterval.
-	self replace: anInterval with: aText and:
-		[self selectInterval: (anInterval first to: anInterval first - 1)]
+	self
+		replace: anInterval
+		with: aText
+		and: [ self selectInterval: aSelection ]
 ]
 
 { #category : 'private' }
@@ -2658,6 +2805,23 @@ RubTextEditor >> walkAlongDisplayedLine [
 RubTextEditor >> wordAtCaret [
 
 	^self paragraph text asString wordBefore: self startIndex - 1
+]
+
+{ #category : 'accessing' }
+RubTextEditor >> wordGroupAt: index in: aString [
+
+	| character |
+	character := aString at: index.
+
+	character isSeparator ifTrue: [ ^ #separator ].
+	character isAlphaNumeric ifTrue: [
+		character isUppercase
+			ifTrue: [ ^ #upper ]
+			ifFalse: [ ^ #lower ] ].
+
+	character isSpecialSyntaxValid ifTrue: [ ^ #syntax ].
+
+	^ #binary
 ]
 
 { #category : 'accessing - selection' }
