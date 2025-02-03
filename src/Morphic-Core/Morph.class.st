@@ -118,13 +118,13 @@ Morph class >> morphNavigationShortcutsOn: aBuilder [
 	"Basic, general navigation shortcut among morphs. #MorphNoCtrl will not work for TextMorphs."
 
 	<keymap>
-	(aBuilder shortcut: #navigateFocusForwardCtrl)
-		category: #MorphNavigation
+	(aBuilder shortcut: #navigateForwardCtrl)
+		category: #MorphCtrlNavigation
 		default: Character tab ctrl asKeyCombination
 		do: [ :target :morph :event |
 			morph world theme openTaskListIn: morph world from: event ].
-	(aBuilder shortcut: #navigateFocusBackwardCtrl)
-		category: #MorphNavigation
+	(aBuilder shortcut: #navigateBackwardCtrl)
+		category: #MorphCtrlNavigation
 		default: Character tab shift ctrl asKeyCombination
 		do: [ :target :morph :event |
 			morph world theme openTaskListIn: morph world from: event ].
