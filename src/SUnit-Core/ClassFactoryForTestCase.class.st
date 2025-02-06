@@ -107,7 +107,8 @@ ClassFactoryForTestCase >> defaultSuperclass [
 { #category : 'cleaning' }
 ClassFactoryForTestCase >> delete: aBehavior [
 
-	| name |
+	| name package |
+	package := aBehavior package.
 	createdBehaviors remove: aBehavior ifAbsent: [  ].
 	aBehavior isObsolete ifTrue: [ ^ self ].
 	name := aBehavior name. "save it as it will be obsolete later"
@@ -117,7 +118,8 @@ ClassFactoryForTestCase >> delete: aBehavior [
 			aBehavior removeFromSystemUnlogged ]
 		ifFalse: [ aBehavior removeFromSystem ].
 	"We know that we can remove the key from the undeclared registry, as it was added by #removeFromSystem"
-	self class undeclaredRegistry removeKey: name ifAbsent: [ "might be an anonymous class" ]
+	self class undeclaredRegistry removeKey: name ifAbsent: [ "might be an anonymous class" ].
+	package isEmpty ifTrue: [ package removeFromSystem ]
 ]
 
 { #category : 'cleaning' }
