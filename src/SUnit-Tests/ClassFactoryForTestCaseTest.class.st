@@ -87,9 +87,9 @@ ClassFactoryForTestCaseTest >> testPackageOfCreatedClassIsCleanedUp [
 			         superclass: Object;
 			         package: 'ClassFactoryForTestCaseGeneratedPackage' ].
 	self assert: class package name equals: 'ClassFactoryForTestCaseGeneratedPackage'.
-	self assert: (self class packageOrganizer packages anySatisfy: [ :package | package name = 'ClassFactoryForTestCaseGeneratedPackage' ]).
+	self assert: (self organization packages anySatisfy: [ :package | package name = 'ClassFactoryForTestCaseGeneratedPackage' ]).
 	factory cleanUp.
-	self deny: (self class packageOrganizer packages anySatisfy: [ :package | package name = 'ClassFactoryForTestCaseGeneratedPackage' ])
+	self deny: (self organization packages anySatisfy: [ :package | package name = 'ClassFactoryForTestCaseGeneratedPackage' ])
 ]
 
 { #category : 'testing' }

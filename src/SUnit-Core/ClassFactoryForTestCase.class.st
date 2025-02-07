@@ -125,7 +125,7 @@ ClassFactoryForTestCase >> delete: aBehavior [
 ClassFactoryForTestCase >> deletePackages [
 	"We remove all packages that we created while creating classes in this factory."
 
-	createdPackages do: [ :package | package removeFromSystem ]
+	createdPackages do: [ :package | self organization removePackage: package ]
 ]
 
 { #category : 'accessing' }
@@ -155,7 +155,7 @@ ClassFactoryForTestCase >> make: aBlock [
 	Once the test is finished, I'll remove the created class or trait."
 
 	| newClass numberOfPackages |
-	numberOfPackages := self environment packageOrganizer packages size.
+	numberOfPackages := self organization packages size.
 	newClass := self class classInstaller make: [ :aBuilder | "Let's but some default values."
 		            aBuilder
 			            name: self newBehaviorName;
@@ -169,7 +169,7 @@ ClassFactoryForTestCase >> make: aBlock [
 	self registerBehavior: newClass.
 
 	"If we created a package, we need to register it to be removed."
-	numberOfPackages = self environment packageOrganizer packages size ifFalse: [ createdPackages add: newClass package ].
+	numberOfPackages = self organization packages size ifFalse: [ createdPackages add: newClass package ].
 	^ newClass
 ]
 
