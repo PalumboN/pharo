@@ -282,11 +282,14 @@ SystemWindow class >> closeTopWindow [
 	"Try to close the top window.  It may of course decline"
 	TopWindow ifNotNil: [ :window |
 		TopWindow := nil.
-		window hide.
-		announcement := WindowClosed new
-			                window: window;
-			                yourself.
-		self currentWorld announcer announce: announcement ]
+		self useHideForClose
+			ifTrue: [
+				window hide.
+				announcement := WindowClosed new
+					                window: window;
+					                yourself.
+				self currentWorld announcer announce: announcement ]
+			ifFalse: [ window delete ] ]
 ]
 
 { #category : 'accessing' }
