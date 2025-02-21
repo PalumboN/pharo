@@ -11,7 +11,7 @@ Class {
 
 { #category : 'examples' }
 DAPackageDependenciesPresenter class >> collections [
-	^ (self onPackagesMatch: '*Collections*') open
+	^ (self onPackagesMatch: '*Collections*') application: self application;  open
 ]
 
 { #category : 'instance creation' }

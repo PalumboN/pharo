@@ -25,9 +25,7 @@ BaselineOfQA >> baseline: spec [
 		spec
 			baseline: 'QualityAssistant'
 			with: [ spec repository: repository ].
-		spec
-			baseline: 'DependencyAnalyzer'
-			with: [ spec repository: repository ].
+		
 
 		spec
 			package: 'General-Rules'

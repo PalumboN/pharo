@@ -122,14 +122,20 @@ BaselineOfIDE >> baseline: spec [
 		spec
 			baseline: 'HeuristicCompletion'
 			with: [ spec repository: repository ].
-		self
-			load: 'DependencyAnalyzer'
-			group: 'Tool-DependencyAnalyser-UI-Tab'
-			spec: spec.
+		
 		self specCode: spec.
 		self roassal: spec.
 		self microdown: spec.
 		self newTools: spec.
+		
+		spec
+			baseline: 'DependencyAnalyzer'
+			with: [ spec repository: repository ].
+		self
+			load: 'DependencyAnalyzer'
+			group: 'Tool-DependencyAnalyser-UI-Tab'
+			spec: spec.
+		
 		self drTests: spec.
 		spec package: #'BeautifulComments'  with: [ spec requires:  #( 'Microdown') ].
 		
