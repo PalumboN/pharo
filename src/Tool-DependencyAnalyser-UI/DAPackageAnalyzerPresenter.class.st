@@ -7,7 +7,7 @@ The main feature is to browse automatically in the browser when you click on a n
 "
 Class {
 	#name : 'DAPackageAnalyzerPresenter',
-	#superclass : 'StPresenterWithModel',
+	#superclass : 'SpPresenterWithModel',
 	#instVars : [
 		'browserWrapper'
 	],
@@ -30,8 +30,7 @@ DAPackageAnalyzerPresenter class >> isAbstract [
 
 { #category : 'instance creation' }
 DAPackageAnalyzerPresenter class >> onPackagesNamed: aCollection [
-	^ self on: (DADependencyTreePresenter onPackagesNamed: aCollection) 
-	
+	^ self on: (DADependencyTreePresenter onPackagesNamed: aCollection)
 ]
 
 { #category : 'accessing' }
