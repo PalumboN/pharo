@@ -27,7 +27,7 @@ BaselineOfDependencyAnalyzer >> baseline: spec [
 		spec 
 			group: 'Core' with: #('Tool-DependencyAnalyser' 'Tool-DependencyAnalyser-UI');
 			group: 'Tests' with: #('Tool-DependencyAnalyser-Tests' 'Tool-DependencyAnalyser-Tests-Data');
-			group: 'default' with: #('Core' 'Tests' 'Tool-DependencyAnalyser-UI-Tab') ]
+			group: 'default' with: #('Core' 'Tests') ]
 ]
 
 { #category : 'baselines' }
