@@ -83,6 +83,7 @@ BaselineOfBasicTools >> baseline: spec [
 		spec package: 'ProfStef-Core'.
 		spec package: 'StartupPreferences'.
 
+
 		spec baseline: 'Refactoring' with: [
 			spec
 				repository: repository;
@@ -92,6 +93,7 @@ BaselineOfBasicTools >> baseline: spec [
 		spec package: 'MonticelloFileServices'.
 
 		self specRefactoring: spec.
+
 
 		spec package: 'Tools-CodeNavigation'.
 		spec package: 'Tool-Diff'.
