@@ -4,7 +4,7 @@ It implies to be open from a PDPackageAnalyzerWindowPackageDependencies instance
 "
 Class {
 	#name : 'DAAddPackagePresenter',
-	#superclass : 'StPresenter',
+	#superclass : 'SpPresenter',
 	#instVars : [
 		'packageList',
 		'buttonAddPackage',
