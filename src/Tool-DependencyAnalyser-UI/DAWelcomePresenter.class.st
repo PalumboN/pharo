@@ -5,7 +5,7 @@ self new openWithSpec
 "
 Class {
 	#name : 'DAWelcomePresenter',
-	#superclass : 'StPresenter',
+	#superclass : 'SpPresenter',
 	#instVars : [
 		'choosePresenter',
 		'browseDependenciesButton'
@@ -60,9 +60,7 @@ DAWelcomePresenter >> initializePresenters [
 
 { #category : 'action' }
 DAWelcomePresenter >> openDependencyAnalyzer [
-	(DAPackageDependenciesPresenter 
-		onPackagesNamed: self selectedPackageNames; 
-		application: self application) open.
+	(DAPackageDependenciesPresenter onPackagesNamed: self selectedPackageNames) open.
 	choosePresenter delete
 ]
 

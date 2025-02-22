@@ -83,6 +83,8 @@ BaselineOfBasicTools >> baseline: spec [
 		spec package: 'ProfStef-Core'.
 		spec package: 'StartupPreferences'.
 
+		spec package: 'OpalCompiler-ToolFeatures'.
+		spec package: 'OpalCompiler-ToolFeatures-Tests'.
 
 		spec baseline: 'Refactoring' with: [
 			spec

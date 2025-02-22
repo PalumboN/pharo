@@ -377,7 +377,7 @@ DADependencyTreePresenter >> selectedNames [
 { #category : 'initialization' }
 DADependencyTreePresenter >> selectedPackageNames [
 		
-	^ self selectedItemsFromTree collect: [ :packageNode | packageNode content packageName ]
+	^ self selectedItemsFromTree collect: [ :packageNode | packageNode packageName ]
 
 ]
 
