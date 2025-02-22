@@ -133,7 +133,7 @@ BaselineOfIDE >> baseline: spec [
 			with: [ spec repository: repository ].
 		self
 			load: 'DependencyAnalyzer'
-			group: 'Tool-DependencyAnalyser-UI-Tab'
+			group: 'default'
 			spec: spec.
 		
 		self drTests: spec.
