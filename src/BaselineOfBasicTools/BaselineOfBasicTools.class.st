@@ -83,9 +83,10 @@ BaselineOfBasicTools >> baseline: spec [
 		spec package: 'ProfStef-Core'.
 		spec package: 'StartupPreferences'.
 
+
+
 		spec package: 'OpalCompiler-ToolFeatures'.
 		spec package: 'OpalCompiler-ToolFeatures-Tests'.
-
 		spec baseline: 'Refactoring' with: [
 			spec
 				repository: repository;
@@ -95,7 +96,6 @@ BaselineOfBasicTools >> baseline: spec [
 		spec package: 'MonticelloFileServices'.
 
 		self specRefactoring: spec.
-
 
 		spec package: 'Tools-CodeNavigation'.
 		spec package: 'Tool-Diff'.

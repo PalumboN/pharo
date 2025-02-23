@@ -124,7 +124,7 @@ BaselineOfIDE >> baseline: spec [
 			with: [ spec repository: repository ].
 		self
 			load: 'DependencyAnalyzer'
-			group: 'default'
+			group: 'Tool-DependencyAnalyser-UI-Tab'
 			spec: spec.
 		self specCode: spec.
 		self roassal: spec.
