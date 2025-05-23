@@ -7,6 +7,13 @@ Class {
 }
 
 { #category : 'tests - bindings' }
+OpalCompilerTest >> tearDown [
+
+	MockForCompilation removeSelector: #foo.
+	super tearDown
+]
+
+{ #category : 'tests - bindings' }
 OpalCompilerTest >> testArrayBindingsWithUppercaseNameDoOverwriteGlobals [
 	| result |
 	result := Smalltalk compiler
@@ -173,6 +180,33 @@ OpalCompilerTest >> testCompilerUsingCleanBlockClosureHasBlockAsLiteral [
 
 	self assert: method literals second isEmbeddedBlock.
 	self assert: method literals second class equals: CleanBlockClosure
+]
+
+{ #category : 'tests - bindings' }
+OpalCompilerTest >> testEvaluateHalt [
+
+	| method |
+	OpalCompiler new
+		class: MockForCompilation;
+		install: 'foo <compilerOptions: #(- optionHaltAsBreakpoint)> 1halt'.
+	method := MockForCompilation >> #foo.
+
+	self should: [ method valueWithReceiver: nil ] raise: Halt
+]
+
+{ #category : 'tests - bindings' }
+OpalCompilerTest >> testEvaluateHaltAsBreakpoint [
+
+	| method |
+	OpalCompiler new
+		class: MockForCompilation;
+		install: 'foo <compilerOptions: #(+ optionHaltAsBreakpoint)> 1halt'.
+	method := MockForCompilation >> #foo.
+
+	self
+		should: [ method valueWithReceiver: nil ]
+		raise: Break
+		withExceptionDo: [ :ex | self assert: ex class equals: Break "It is not from the superclass Halt" ]
 ]
 
 { #category : 'tests - bindings' }

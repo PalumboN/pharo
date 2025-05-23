@@ -12,10 +12,6 @@ Class {
 	#tag : 'FromOld'
 }
 
-{ #category : 'as yet unclassified' }
-MockForCompilation >> foo [ <compilerOptions: #(+ optionHaltAsBreakpoint)> 1halt
-]
-
 { #category : 'accessing' }
 MockForCompilation >> var1 [
 
