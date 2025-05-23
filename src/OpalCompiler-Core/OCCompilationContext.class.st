@@ -160,6 +160,11 @@ OCCompilationContext class >> optionHaltAsBreakpoint [
 	^ self readDefaultOption: #optionHaltAsBreakpoint
 ]
 
+{ #category : 'as yet unclassified' }
+OCCompilationContext class >> optionHaltAsBreakpoint: aBoolean [ 
+	^ self writeDefaultOption: #optionHaltAsBreakpoint value: aBoolean
+]
+
 { #category : 'options - settings API' }
 OCCompilationContext class >> optionInlineAndOr [
 	^ self readDefaultOption: #optionInlineAndOr
