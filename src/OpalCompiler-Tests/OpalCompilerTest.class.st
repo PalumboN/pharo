@@ -145,6 +145,18 @@ OpalCompilerTest >> testCompilerUsingCleanBlockClosureHasBlockAsLiteral [
 ]
 
 { #category : 'tests - bindings' }
+OpalCompilerTest >> testEvaluateHalt [
+
+	| result method |
+	OpalCompiler new
+		class: MockForCompilation;
+		install: 'foo 2halt'.
+	method := MockForCompilation >> #foo.
+	result := method valueWithReceiver: nil.
+	self assert: result equals: nil
+]
+
+{ #category : 'tests - bindings' }
 OpalCompilerTest >> testEvaluateWithBindings [
 	| result |
 	result := OpalCompiler new 
