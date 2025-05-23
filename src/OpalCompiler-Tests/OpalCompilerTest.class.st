@@ -91,6 +91,37 @@ OpalCompilerTest >> testCompileFromText [
 	self assert: result sourceCode equals: source asString
 ]
 
+{ #category : 'tests - bindings' }
+OpalCompilerTest >> testCompileHalt [
+
+	| method |
+	OpalCompiler new
+		class: MockForCompilation;
+		install: 'foo <compilerOptions: #(- optionHaltAsBreakpoint)> 1halt'.
+	method := MockForCompilation >> #foo.
+
+	self assert: (method bytecodes first: 2) equals: #[ 
+		81  "push constant"
+		128 "send: halt"
+	]
+]
+
+{ #category : 'tests - bindings' }
+OpalCompilerTest >> testCompileHaltAsBreakpoint [
+
+	| method |
+	OpalCompiler new
+		class: MockForCompilation;
+		install: 'foo <compilerOptions: #(+ optionHaltAsBreakpoint)> 1halt'.
+	method := MockForCompilation >> #foo.
+
+	self assert: (method bytecodes first: 3) equals: #[ 
+		32  "push a BreakDebugPoint"
+		82  "push thisContext"
+		145 "send: hitWithContext:"
+	]
+]
+
 { #category : 'tests' }
 OpalCompilerTest >> testCompileSource [
 	| source result |
@@ -142,18 +173,6 @@ OpalCompilerTest >> testCompilerUsingCleanBlockClosureHasBlockAsLiteral [
 
 	self assert: method literals second isEmbeddedBlock.
 	self assert: method literals second class equals: CleanBlockClosure
-]
-
-{ #category : 'tests - bindings' }
-OpalCompilerTest >> testEvaluateHalt [
-
-	| result method |
-	OpalCompiler new
-		class: MockForCompilation;
-		install: 'foo <compilerOptions: #(+ optionHaltAsBreakpoint)> 2halt'.
-	method := MockForCompilation >> #foo.
-	result := method valueWithReceiver: nil.
-	self assert: result equals: nil
 ]
 
 { #category : 'tests - bindings' }
