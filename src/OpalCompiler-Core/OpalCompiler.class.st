@@ -592,8 +592,8 @@ OpalCompiler >> install [
 
 	class instanceSide noteCompilationOf: method meta: class isClassSide.
 
-	"1halt."
-	self installBreakpointsOnHalts: method ast.
+	compilationContext optionHaltAsBreakpoint ifTrue: [ 
+		self installBreakpointsOnHalts: method ast ].
 
 	^ method
 ]

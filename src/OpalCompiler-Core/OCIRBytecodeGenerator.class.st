@@ -638,9 +638,10 @@ OCIRBytecodeGenerator >> send: selector [
 	nArgs := selector numArgs.
 	stack pop: nArgs.
 
-	selector = #halt ifTrue: [
-			"1 halt."
-			^ self ].
+	(compilationContext optionHaltAsBreakpoint and: [ selector = #halt ])
+		ifTrue: [
+				"Avoid message send, later it will put a breakpoint instead"
+				^ self ].
 
 	(compilationContext optionOptimiseSpecialSends and: [
 		 self encoderClass specialSelectors includes: selector ]) ifTrue: [

@@ -150,7 +150,7 @@ OpalCompilerTest >> testEvaluateHalt [
 	| result method |
 	OpalCompiler new
 		class: MockForCompilation;
-		install: 'foo 2halt'.
+		install: 'foo <compilerOptions: #(+ optionHaltAsBreakpoint)> 2halt'.
 	method := MockForCompilation >> #foo.
 	result := method valueWithReceiver: nil.
 	self assert: result equals: nil
